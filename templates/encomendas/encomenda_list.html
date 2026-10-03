@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Encomendas</h2>
+<div class="card"><div class="row"><a class="btn btn-ghost" href="?status=aberta">Abertas</a><a class="btn btn-ghost" href="?status=fechada">Fechadas</a><a class="btn btn-ghost" href="{% url 'encomendas:list' %}">Todas</a><span style="flex:1"></span><a class="btn" href="{% url 'encomendas:export' %}?status=aberta">Export CSV</a></div></div>
+<div class="card"><ul class="clean">{% for e in encomendas %}<li>{{ e.livro_titulo }} <span class="muted">— {{ e.cliente.nome }} · {{ e.status }}</span> <a href="{% url 'encomendas:update' e.pk %}">Editar</a></li>{% empty %}<li class="muted">Sem encomendas</li>{% endfor %}</ul></div>
+{% endblock %}

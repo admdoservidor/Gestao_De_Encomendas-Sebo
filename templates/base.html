@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{% block title %}Sebo{% endblock %}</title>
+<meta name="description" content="Sebo — receba encomendas de livros via link e QR Code. Instale no celular ou computador.">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+<meta name="theme-color" content="#1a1a1a">
+<link rel="icon" href="{% static 'icons/icon-192.png' %}" type="image/png">
+<link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sebo">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+<div class="wrap">
+<nav class="nav">
+{% if user.is_authenticated %}
+<a class="btn btn-ghost" href="{% url 'dashboard:home' %}">Início</a>
+<a class="btn btn-ghost" href="{% url 'clientes:list' %}">Clientes</a>
+<a class="btn btn-ghost" href="{% url 'encomendas:list' %}">Encomendas</a>
+<a class="btn btn-ghost" href="{% url 'dashboard:links' %}">Links</a>
+<span class="sp"></span>
+<button id="install-btn" class="btn btn-ghost" style="display:none">Instalar</button>
+<button id="install-help-btn" class="btn btn-ghost" style="display:none">📲 Celular</button>
+<form class="inline" method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn-ghost">Sair</button></form>
+{% else %}
+<h1 style="margin:0;font-size:20px">Sebo</h1><span class="sp"></span>
+<button id="install-btn" class="btn btn-ghost" style="display:none">Instalar</button>
+<button id="install-help-btn" class="btn btn-ghost" style="display:none">📲 Celular</button>
+{% if request.resolver_match.url_name != 'login' %}<a class="btn btn-signup" href="{% url 'login' %}">Entrar</a>{% endif %}
+{% endif %}
+</nav>
+<div id="install-banner" class="install-banner" style="display:none">
+<span>Instale o Sebo no celular para acesso rápido 📲</span>
+<span class="row" style="flex-wrap:nowrap">
+<button id="banner-install" class="btn">Instalar</button>
+<button id="banner-help" class="btn btn-ghost">Como?</button>
+<button id="banner-close" class="btn btn-ghost" aria-label="Fechar">✕</button>
+</span>
+</div>
+{% for m in messages %}<div class="card">{{ m }}</div>{% endfor %}
+{% block content %}{% endblock %}
+</div>
+<dialog id="install-dialog" class="install-dialog">
+<h2>Instalar no celular</h2>
+<p class="muted" id="install-detected"></p>
+<div id="install-help-text">
+<div class="install-step" data-platform="android-chrome">
+<p><b>Android (Chrome)</b><br>Toque em <b>⋮ → Adicionar à tela inicial → Instalar</b>. Ou use o botão automático:</p>
+<div class="row"><button class="btn js-install-now">Instalar agora</button><button class="btn btn-ghost js-copy-link">Copiar link</button></div>
+<p class="muted js-install-status"></p>
+</div>
+<div class="install-step" data-platform="samsung">
+<p><b>Samsung Internet</b><br>Toque em <b>☰ → Adicionar página a → Tela inicial</b>.</p>
+<div class="row"><button class="btn btn-ghost js-share">Compartilhar</button><button class="btn btn-ghost js-copy-link">Copiar link</button></div>
+</div>
+<div class="install-step" data-platform="iphone">
+<p><b>iPhone (Safari)</b><br>Toque em <b>Compartilhar ⎙ → Adicionar à Tela de Início → Adicionar</b>. No iOS não há botão automático — é manual.</p>
+<div class="row"><button class="btn btn-ghost js-share">Compartilhar</button><button class="btn btn-ghost js-copy-link">Copiar link</button></div>
+</div>
+<div class="install-step" data-platform="desktop">
+<p><b>Computador (Chrome/Edge)</b><br>Use o botão <b>Instalar</b> na barra de navegação ou abaixo:</p>
+<div class="row"><button class="btn js-install-now">Instalar</button></div>
+<p class="muted js-install-status"></p>
+</div>
+</div>
+<form method="dialog" style="margin-top:12px"><button class="btn">Fechar</button></form>
+</dialog>
+<script src="{% static 'js/install.js' %}" defer></script>
+</body>
+</html>

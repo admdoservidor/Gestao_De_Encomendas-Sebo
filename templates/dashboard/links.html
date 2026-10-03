@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="text-align:center">
+<h2>Seu link de formulário</h2>
+<img src="data:image/png;base64,{{ qr_data }}" alt="QR do formulário" width="220" height="220">
+<p class="muted">Aponte a câmera para abrir o formulário</p>
+</div>
+<div class="card">
+<div class="row"><input id="form-link" value="{{ form_url }}" readonly style="flex:1"><button class="btn" onclick="copiarLink()">Copiar</button></div>
+<p class="muted" id="copy-msg"></p>
+</div>
+<script>
+function copiarLink(){
+  var el = document.getElementById("form-link");
+  el.select();
+  var done = function(){ document.getElementById("copy-msg").textContent = "Link copiado!"; };
+  if (navigator.clipboard) { navigator.clipboard.writeText(el.value).then(done); }
+  else { document.execCommand("copy"); done(); }
+}
+</script>
+{% endblock %}

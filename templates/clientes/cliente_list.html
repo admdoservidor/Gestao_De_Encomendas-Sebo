@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load phone_mask %}
+{% block content %}
+<h2>Clientes</h2>
+<div class="card"><form method="get"><div class="row"><input name="q" value="{{ request.GET.q }}" placeholder="Buscar por nome ou telefone" style="flex:1"><button class="btn">Buscar</button></div></form>
+<div class="row" style="margin-top:12px"><a class="btn btn-ghost" href="?favorito=1">★ Favoritos</a><a class="btn btn-ghost" href="{% url 'clientes:list' %}">Todos</a><span class="sp" style="flex:1"></span><a class="btn" href="{% url 'clientes:create' %}">+ Novo</a></div></div>
+<div class="card"><ul class="clean">
+{% for c in clientes %}
+<li><div class="row" style="justify-content:space-between;align-items:center"><div class="row"><strong>{{ c.nome }}</strong><span class="muted">{{ c.telefone|mask_phone }}</span>{% if c.tem_aberta %}<a class="btn btn-ghost" style="margin-left:20px" href="{% url 'encomendas:list' %}?status=aberta&cliente={{ c.pk }}">Encomenda</a>{% endif %}</div><div class="row"><a href="{% url 'clientes:update' c.pk %}">Editar</a><a href="https://wa.me/{{ c.telefone }}">WhatsApp</a><form class="inline" method="post" action="{% url 'clientes:favorito' c.pk %}">{% csrf_token %}<button class="btn btn-ghost" title="Favorito" aria-label="Favorito">{% if c.favorito %}★{% else %}☆{% endif %}</button></form></div></div></li>
+{% empty %}<li class="muted">Nenhum cliente</li>{% endfor %}
+</ul></div>
+{% endblock %}

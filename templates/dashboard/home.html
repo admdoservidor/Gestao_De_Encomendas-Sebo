@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Olá, {{ user.username }}</h2>
+<div class="stats">
+<a class="stat" href="{% url 'clientes:list' %}" style="text-decoration:none;color:inherit"><b>{{ total_clientes }}</b><span class="muted">clientes</span></a>
+<a class="stat" href="{% url 'encomendas:list' %}?status=aberta" style="text-decoration:none;color:inherit"><b>{{ abertas }}</b><span class="muted">encomendas abertas</span></a>
+</div>
+<div class="card">
+<h2>Recentes</h2>
+<ul class="clean">{% for e in ultimas %}<li><a href="{% url 'encomendas:list' %}?cliente={{ e.cliente.pk }}" style="text-decoration:none;color:inherit">{{ e.livro_titulo }} <span class="muted">— {{ e.cliente.nome }} · {{ e.status }}</span></a></li>{% empty %}<li class="muted">Sem encomendas</li>{% endfor %}</ul>
+</div>
+{% endblock %}
