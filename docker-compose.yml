@@ -23,11 +23,21 @@ services:
     environment:
       DJANGO_DEBUG: "${DJANGO_DEBUG:-False}"
       DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-*}"
+      # Opção A (local): banco do compose
       POSTGRES_DB: "${POSTGRES_DB:-sebo}"
       POSTGRES_USER: "${POSTGRES_USER:-sebo}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}"
       POSTGRES_HOST: "db"
       POSTGRES_PORT: "5432"
+      # Opção B (Supabase): repassadas ao container quando definidas;
+      # o settings.py prioriza a URL sobre as variáveis acima.
+      sebo_POSTGRES_URL: "${sebo_POSTGRES_URL:-}"
+      sebo_POSTGRES_PRISMA_URL: "${sebo_POSTGRES_PRISMA_URL:-}"
+      sebo_POSTGRES_HOST: "${sebo_POSTGRES_HOST:-}"
+      sebo_POSTGRES_DATABASE: "${sebo_POSTGRES_DATABASE:-}"
+      sebo_POSTGRES_PASSWORD: "${sebo_POSTGRES_PASSWORD:-}"
+      POSTGRES_URL: "${POSTGRES_URL:-}"
+      DATABASE_URL: "${DATABASE_URL:-}"
     depends_on:
       db:
         condition: service_healthy

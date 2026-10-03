@@ -12,6 +12,46 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 import os
+from urllib.parse import urlparse, parse_qsl, unquote
+
+
+def _env(*names, default=''):
+    for name in names:
+        value = os.environ.get(name)
+        if value:
+            return value
+    return default
+
+
+def _db_from_url(url):
+    u = urlparse(url)
+    qs = dict(parse_qsl(u.query))
+    try:
+        port = str(u.port) if u.port else ''
+    except ValueError:
+        port = ''
+    pooler = port == '6543' or 'pgbouncer' in qs
+    return {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': unquote(u.path.lstrip('/')) or 'postgres',
+        'USER': unquote(u.username) if u.username else 'postgres',
+        'PASSWORD': unquote(u.password) if u.password else '',
+        'HOST': u.hostname or 'localhost',
+        'PORT': port or '5432',
+        'CONN_MAX_AGE': int(_env('POSTGRES_CONN_MAX_AGE', default='0' if pooler else '60')),
+        'OPTIONS': {'sslmode': qs.get('sslmode', 'require')},
+        # Supabase pooler (PgBouncer, transaction mode) não suporta cursores server-side
+        'DISABLE_SERVER_SIDE_CURSORS': pooler,
+    }
+
+
+_DATABASE_URL = _env(
+    'sebo_POSTGRES_PRISMA_URL',
+    'sebo_POSTGRES_URL',
+    'POSTGRES_PRISMA_URL',
+    'POSTGRES_URL',
+    'DATABASE_URL',
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -84,18 +124,34 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+# Prioridade: URL completa (Supabase pooler/direta) > variáveis avulsas.
+# Aceita os nomes do .env.local do Supabase (prefixo sebo_) e os sem prefixo.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'sebo'),
-        'USER': os.environ.get('POSTGRES_USER', 'sebo'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'sebo'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-        'CONN_MAX_AGE': int(os.environ.get('POSTGRES_CONN_MAX_AGE', '60')),
+if _DATABASE_URL:
+    DATABASES = {'default': _db_from_url(_DATABASE_URL)}
+else:
+    _pg_host = _env('sebo_POSTGRES_HOST', 'POSTGRES_HOST', default='localhost')
+    _pg_port = _env('sebo_POSTGRES_PORT', 'POSTGRES_PORT', default='5432')
+    _pg_options = (
+        {'sslmode': 'require'}
+        if 'supabase.co' in _pg_host or 'supabase.com' in _pg_host
+        else {}
+    )
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _env('sebo_POSTGRES_DATABASE', 'POSTGRES_DATABASE', 'POSTGRES_DB', default='sebo'),
+            'USER': _env('sebo_POSTGRES_USER', 'POSTGRES_USER', default='postgres'),
+            'PASSWORD': _env('sebo_POSTGRES_PASSWORD', 'POSTGRES_PASSWORD', default='sebo'),
+            'HOST': _pg_host,
+            'PORT': _pg_port,
+            'CONN_MAX_AGE': int(
+                _env('POSTGRES_CONN_MAX_AGE', default='0' if _pg_port == '6543' else '60')
+            ),
+            'OPTIONS': _pg_options,
+            'DISABLE_SERVER_SIDE_CURSORS': _pg_port == '6543',
+        }
     }
-}
 
 
 # Password validation
