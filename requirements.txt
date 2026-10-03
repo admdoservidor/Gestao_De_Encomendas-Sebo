@@ -1,0 +1,5 @@
+Django==6.1.1
+qrcode==8.2
+pillow==12.3.0
+gunicorn==26.2.0
+whitenoise==6.12.0
